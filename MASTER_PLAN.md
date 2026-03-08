@@ -45,7 +45,11 @@ The atuin-claude-ctrl-plugin (and future personal plugins) are installed via dir
 
 ### DEC-MARKET-004: Plugin directories reference source repos, not static copies
 **Status:** accepted
-**Rationale:** Static file copies drift from the source repo and require manual syncing on every change. Each plugin directory in the marketplace should contain a `plugin.json` with a `homepage` field pointing to the source repo (e.g., `https://github.com/Mastermjr/atuin-claude-ctrl-plugin`), and a README that directs users to the source. The marketplace-relevant runtime files (hooks, skills) are kept in the marketplace for Claude Code's plugin loader, but the README and plugin.json make the source repo the canonical reference. Future: consider git submodules or a sync CI action to keep marketplace copies in sync with source repos automatically.
+**Rationale:** Static file copies drift from the source repo and require manual syncing on every change. Each plugin directory in the marketplace should contain a `plugin.json` with a `homepage` field pointing to the source repo (e.g., `https://github.com/Mastermjr/atuin-claude-ctrl-plugin`), and a README that directs users to the source. The marketplace-relevant runtime files (hooks, skills) are kept in the marketplace for Claude Code's plugin loader, but the README and plugin.json make the source repo the canonical reference.
+
+### DEC-MARKET-005: GitHub Actions workflow syncs runtime files from source repos
+**Status:** accepted
+**Rationale:** Claude Code's plugin loader does not follow git submodules or external references — runtime files must be inline. A GitHub Actions workflow bridges this gap: it clones the source repo, copies runtime files (`.claude-plugin/`, `hooks/`, `skills/`), and opens a PR. Triggers: `repository_dispatch` from source repo, manual `workflow_dispatch`, and weekly cron fallback. Plugin files in this marketplace should NEVER be edited directly — always edit in the source repo and let the sync propagate.
 
 ---
 
@@ -56,17 +60,20 @@ claude-code-market/
 ├── LICENSE              (MIT, exists)
 ├── README.md            (marketplace overview + install instructions)
 ├── MASTER_PLAN.md       (this file)
+├── .github/
+│   └── workflows/
+│       └── sync-atuin-history.yml  # Auto-syncs from source repo → marketplace
 └── plugins/
-    └── atuin-history/
+    └── atuin-history/              # ⚠️ DO NOT EDIT — auto-synced from source repo
         ├── .claude-plugin/
-        │   └── plugin.json     # {name, description, author, homepage → source repo}
+        │   └── plugin.json         # {name, description, author, homepage → source repo}
         ├── hooks/
-        │   ├── hooks.json      # Hook registration
-        │   └── atuin-log.sh    # PostToolUse:Bash hook
+        │   ├── hooks.json          # Hook registration
+        │   └── atuin-log.sh        # PostToolUse:Bash hook
         ├── skills/
         │   └── atuin/
-        │       └── SKILL.md    # /atuin-history:atuin skill
-        └── README.md           # Points to source repo as canonical reference
+        │       └── SKILL.md        # /atuin-history:atuin skill
+        └── README.md               # Points to source repo as canonical reference
 ```
 
 ---
@@ -90,21 +97,26 @@ claude-code-market/
 | P2-1 | Register `claude-code-market` in `known_marketplaces.json` (user's machine) | S | none | done |
 | P2-2 | Test `/plugin install atuin-history@claude-code-market` end-to-end | S | review | done — all structure checks pass |
 
-### Phase 3: Source Repo References
-**Status:** in-progress
+### Phase 3: Source Repo References + Auto-Sync
+**Status:** complete
 
-Replace static file copies with proper source repo references per DEC-MARKET-004.
+Replace static file copies with proper source repo references (DEC-MARKET-004) and GitHub Actions auto-sync (DEC-MARKET-005).
 
-| Item | Description | Weight | Gate |
-|------|-------------|--------|------|
-| P3-1 | Update `plugins/atuin-history/.claude-plugin/plugin.json` to include `homepage` field pointing to `https://github.com/Mastermjr/atuin-claude-ctrl-plugin` | S | review |
-| P3-2 | Update `plugins/atuin-history/README.md` to reference source repo as canonical, with link to issues/contributions | S | review |
-| P3-3 | Update marketplace `README.md` to include source repo link in the plugins table | S | review |
+| Item | Description | Weight | Gate | Status |
+|------|-------------|--------|------|--------|
+| P3-1 | Update `plugins/atuin-history/.claude-plugin/plugin.json` to include `homepage` field | S | review | done |
+| P3-2 | Update `plugins/atuin-history/README.md` to reference source repo as canonical | S | review | done |
+| P3-3 | Update marketplace `README.md` to include source repo link in the plugins table | S | review | done |
+| P3-4 | Create `.github/workflows/sync-atuin-history.yml` to auto-sync from source repo | S | review | done |
+| P3-5 | Document sync workflow in plugin README and marketplace README | S | review | done |
 
 ### Phase 4: Future Plugins
 **Status:** future
 
-Add more personal plugins as they are developed. Each gets a directory under `plugins/` with the standard `.claude-plugin/plugin.json` manifest and `homepage` pointing to its source repo.
+Add more personal plugins as they are developed. Each gets:
+- A directory under `plugins/` with the standard `.claude-plugin/plugin.json` manifest
+- A corresponding sync workflow in `.github/workflows/`
+- `homepage` in plugin.json pointing to its source repo
 
 ---
 
@@ -112,3 +124,4 @@ Add more personal plugins as they are developed. Each gets a directory under `pl
 
 - **Phase 1** — Marketplace structure established with atuin-history as first plugin (commit `e827641`)
 - **Phase 2** — Marketplace registered in `known_marketplaces.json`, all structure checks pass
+- **Phase 3** — Source repo references added, GitHub Actions sync workflow created (DEC-MARKET-005)
