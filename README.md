@@ -12,9 +12,9 @@ Register this marketplace so plugins are discoverable via `/plugin > Discover`:
 
 ## Available Plugins
 
-| Plugin | Description | Install |
-|--------|-------------|---------|
-| [atuin-history](plugins/atuin-history/) | Bridges Atuin shell history with Claude Code — logs commands and provides live search | `/plugin install atuin-history@claude-code-market` |
+| Plugin | Description | Source | Install |
+|--------|-------------|--------|---------|
+| [atuin-history](plugins/atuin-history/) | Bridges Atuin shell history with Claude Code — logs commands and provides live search | [atuin-claude-ctrl-plugin](https://github.com/Mastermjr/atuin-claude-ctrl-plugin) | `/plugin install atuin-history@claude-code-market` |
 
 ## Adding Plugins
 
