@@ -1,0 +1,17 @@
+{
+  "description": "Atuin history logging hook — logs every Bash command to Atuin's shell history database",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/atuin-log.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
