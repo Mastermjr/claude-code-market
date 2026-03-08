@@ -32,8 +32,8 @@ The atuin-claude-ctrl-plugin (and future personal plugins) are installed via dir
 ## Decisions
 
 ### DEC-MARKET-001: Inline plugins, no submodules
-**Status:** accepted
-**Rationale:** The official marketplace uses inline copies. Claude Code's plugin system reads files directly from the marketplace clone — it does not perform `git submodule update`. The marketplace-relevant files (`.claude-plugin/`, `skills/`, `hooks/`) are copied into the marketplace repo. Tests and dev artifacts stay in the source repo.
+**Status:** superseded by DEC-MARKET-004
+**Rationale:** Originally used inline file copies. Superseded — plugin directories should reference source repos instead.
 
 ### DEC-MARKET-002: `plugins/` only, no `external_plugins/`
 **Status:** accepted
@@ -42,6 +42,10 @@ The atuin-claude-ctrl-plugin (and future personal plugins) are installed via dir
 ### DEC-MARKET-003: Plugin directory names match plugin.json `name` field
 **Status:** accepted
 **Rationale:** The install command resolves by directory name under `plugins/`. Directory name must match `name` in plugin.json for consistent UX (e.g., `atuin-history` → `/plugin install atuin-history@claude-code-market`).
+
+### DEC-MARKET-004: Plugin directories reference source repos, not static copies
+**Status:** accepted
+**Rationale:** Static file copies drift from the source repo and require manual syncing on every change. Each plugin directory in the marketplace should contain a `plugin.json` with a `homepage` field pointing to the source repo (e.g., `https://github.com/Mastermjr/atuin-claude-ctrl-plugin`), and a README that directs users to the source. The marketplace-relevant runtime files (hooks, skills) are kept in the marketplace for Claude Code's plugin loader, but the README and plugin.json make the source repo the canonical reference. Future: consider git submodules or a sync CI action to keep marketplace copies in sync with source repos automatically.
 
 ---
 
@@ -55,14 +59,14 @@ claude-code-market/
 └── plugins/
     └── atuin-history/
         ├── .claude-plugin/
-        │   └── plugin.json     # {name, description, author}
+        │   └── plugin.json     # {name, description, author, homepage → source repo}
         ├── hooks/
         │   ├── hooks.json      # Hook registration
         │   └── atuin-log.sh    # PostToolUse:Bash hook
         ├── skills/
         │   └── atuin/
         │       └── SKILL.md    # /atuin-history:atuin skill
-        └── README.md           # Plugin docs
+        └── README.md           # Points to source repo as canonical reference
 ```
 
 ---
@@ -70,29 +74,41 @@ claude-code-market/
 ## Phases
 
 ### Phase 1: Marketplace Structure + First Plugin (atuin-history)
-**Status:** in-progress
+**Status:** complete
 
-| Item | Description | Weight | Gate |
-|------|-------------|--------|------|
-| P1-1 | Create `plugins/atuin-history/` with `.claude-plugin/plugin.json`, hooks, skills, README | S | review |
-| P1-2 | Create marketplace `README.md` with overview and install instructions | S | review |
-| P1-3 | Add `.claude-plugin/plugin.json` to source repo (`atuin-claude-ctrl-plugin`) for parity | S | review |
+| Item | Description | Weight | Gate | Status |
+|------|-------------|--------|------|--------|
+| P1-1 | Create `plugins/atuin-history/` with `.claude-plugin/plugin.json`, hooks, skills, README | S | review | done |
+| P1-2 | Create marketplace `README.md` with overview and install instructions | S | review | done |
+| P1-3 | Add `.claude-plugin/plugin.json` to source repo (`atuin-claude-ctrl-plugin`) for parity | S | review | done (already existed) |
 
 ### Phase 2: Registration + E2E Test
-**Status:** pending
+**Status:** complete
+
+| Item | Description | Weight | Gate | Status |
+|------|-------------|--------|------|--------|
+| P2-1 | Register `claude-code-market` in `known_marketplaces.json` (user's machine) | S | none | done |
+| P2-2 | Test `/plugin install atuin-history@claude-code-market` end-to-end | S | review | done — all structure checks pass |
+
+### Phase 3: Source Repo References
+**Status:** in-progress
+
+Replace static file copies with proper source repo references per DEC-MARKET-004.
 
 | Item | Description | Weight | Gate |
 |------|-------------|--------|------|
-| P2-1 | Register `claude-code-market` in `known_marketplaces.json` (user's machine) | S | none |
-| P2-2 | Test `/plugin install atuin-history@claude-code-market` end-to-end | S | review |
+| P3-1 | Update `plugins/atuin-history/.claude-plugin/plugin.json` to include `homepage` field pointing to `https://github.com/Mastermjr/atuin-claude-ctrl-plugin` | S | review |
+| P3-2 | Update `plugins/atuin-history/README.md` to reference source repo as canonical, with link to issues/contributions | S | review |
+| P3-3 | Update marketplace `README.md` to include source repo link in the plugins table | S | review |
 
-### Phase 3: Future Plugins
+### Phase 4: Future Plugins
 **Status:** future
 
-Add more personal plugins as they are developed. Each gets a directory under `plugins/` with the standard `.claude-plugin/plugin.json` manifest.
+Add more personal plugins as they are developed. Each gets a directory under `plugins/` with the standard `.claude-plugin/plugin.json` manifest and `homepage` pointing to its source repo.
 
 ---
 
 ## Completed
 
-_(none yet)_
+- **Phase 1** — Marketplace structure established with atuin-history as first plugin (commit `e827641`)
+- **Phase 2** — Marketplace registered in `known_marketplaces.json`, all structure checks pass

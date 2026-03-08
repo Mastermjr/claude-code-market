@@ -2,7 +2,8 @@
 
 Bridges [Atuin](https://atuin.sh/) shell history with Claude Code.
 
-**Source repo:** [Mastermjr/atuin-claude-ctrl-plugin](https://github.com/Mastermjr/atuin-claude-ctrl-plugin)
+> **Canonical source:** [Mastermjr/atuin-claude-ctrl-plugin](https://github.com/Mastermjr/atuin-claude-ctrl-plugin)
+> Bug reports, feature requests, and contributions go to the source repo.
 
 ## What It Does
 
@@ -30,6 +31,12 @@ The hook fires automatically — no action needed. To use the skill:
 /atuin-history:atuin search for git commands from last week
 /atuin-history:atuin show me my stats
 ```
+
+## Source
+
+This marketplace listing contains the runtime files (hooks, skills) needed by Claude Code's plugin loader. The canonical source of truth — including tests, architecture docs, and full commit history — lives at:
+
+**https://github.com/Mastermjr/atuin-claude-ctrl-plugin**
 
 ## License
 
