@@ -1,9 +1,8 @@
 {
   "name": "atuin-history",
-  "description": "Bridges Atuin shell history with Claude Code — logs every Bash command Claude executes into Atuin and provides a skill for live history search, stats, and configuration",
-  "homepage": "https://github.com/Mastermjr/atuin-claude-ctrl-plugin",
+  "description": "Logs every Bash command Claude executes into Atuin's shell history database and provides an /atuin skill for searching and managing shell history.",
+  "version": "2.0.0",
   "author": {
-    "name": "Mastermjr",
-    "email": "mastermjr@users.noreply.github.com"
+    "name": "Mastermjr"
   }
 }
