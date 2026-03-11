@@ -47,6 +47,7 @@ Append-only record of significant decisions across all initiatives. Each entry r
 | 2026-03-08 | DEC-MARKET-007 | marketplace-v2 | Plugin-dev skill as comprehensive SKILL.md in marketplace repo | Marketplace repo becomes a plugin providing the plugin-dev skill |
 | 2026-03-08 | DEC-MARKET-008 | marketplace-v2 | Documentation freshness workflow via GitHub Actions | Scheduled check opens issue when skill content may be stale |
 | 2026-03-08 | DEC-SKILL-001 | marketplace-v2 | Plugin-dev skill covers full plugin lifecycle | Single SKILL.md covering manifest, source types, components, hooks, distribution |
+| 2026-03-11 | DEC-MARKET-009 | marketplace-v2 | Marketplace as setup hub — recommends companion marketplaces via setup skill | The marketplace becomes a "setup hub" for Claude Code. Rather than just listing Mastermjr's plugins, it provides a setup skill that guides users through registering companion marketplaces (starting with astral-sh) and installing recommended plugins. This is documentation + skill, not automated config mutation. |
 
 ---
 
@@ -122,13 +123,17 @@ The marketplace uses `.claude-plugin/marketplace.json` with GitHub source for at
   Addresses: REQ-P0-004, REQ-GOAL-002.
   Rationale: The skill must cover everything an agent needs to design, build, and distribute a plugin without prior knowledge. Sections: plugin.json manifest (all fields), source types (relative, GitHub, git URL, git-subdir, npm, pip), component types (skills, commands, agents, hooks, MCP servers, LSP servers, output styles), hook system (events, types, matchers), marketplace.json authoring, strict mode, plugin caching, CLI commands, and `${CLAUDE_PLUGIN_ROOT}` usage.
 
+- DEC-MARKET-009: Marketplace as setup hub — recommends companion marketplaces via setup skill
+  Addresses: REQ-GOAL-001.
+  Rationale: The marketplace evolves from a passive plugin listing into an active "setup hub" for Claude Code. A `/claude-code-market:setup` skill guides users through registering recommended companion marketplaces (starting with `astral-sh/claude-code-plugins`) and installing useful plugins. The approach is guide-based (presents recommendations and commands) rather than automated config mutation — respecting user agency while reducing discovery friction. This is the simplest viable implementation: one new skill + README section + plugin.json update.
+
 #### Waves
 
 ##### Initiative Summary
-- **Total items:** 6
-- **Critical path:** 2 waves (W1-1 -> W2-1)
+- **Total items:** 9
+- **Critical path:** 3 waves (W1-1 -> W2-1 -> W3-1)
 - **Max width:** 4 (Wave 1)
-- **Gates:** 4 review, 0 approve
+- **Gates:** 7 review, 0 approve
 
 ##### Wave 1 (no dependencies)
 **Parallel dispatches:** 4
@@ -211,11 +216,58 @@ The marketplace uses `.claude-plugin/marketplace.json` with GitHub source for at
 - Verify no stale references to plugins/ directory or sync workflow
 - **Integration:** Validation only — no new code
 
+##### Wave 3
+**Status:** planned
+**Parallel dispatches:** 3
+**Blocked by:** W2-2
+
+**W3-1: Create setup skill for marketplace hub configuration (#12)** — Weight: M, Gate: review, Deps: W2-2
+- Create `skills/setup/SKILL.md` providing the `/claude-code-market:setup` skill
+- The skill guides users through configuring their Claude Code with recommended marketplaces and plugins:
+  1. Check which marketplaces are currently registered (`/plugin list-marketplaces`)
+  2. Recommend adding `astral-sh/claude-code-plugins` if not already registered
+  3. List recommended plugins from each marketplace (uv, ty, ruff from Astral; atuin-history from this marketplace)
+  4. Provide copy-paste commands for each: `/plugin add-marketplace astral-sh/claude-code-plugins`, `/plugin install <name>`
+  5. Suggest enabling useful plugins based on user's detected environment (Python project? recommend uv+ruff+ty)
+- Skill frontmatter:
+  ```yaml
+  ---
+  name: setup
+  description: "Guide users through configuring Claude Code with recommended marketplaces and plugins"
+  ---
+  ```
+- The skill is a guided walkthrough, not automation — it presents recommendations and commands, the user decides what to install
+- Maintain a "Recommended Marketplaces" registry within the skill content:
+  - `astral-sh/claude-code-plugins` — Python tooling (uv, ty, ruff, ty LSP)
+  - More can be added over time as the ecosystem grows
+- **Integration:** Add `"skills/setup"` to `.claude-plugin/plugin.json` `skills` array. Invoked as `/claude-code-market:setup`.
+
+**W3-2: Update README with Recommended Setup section (#13)** — Weight: S, Gate: review, Deps: W2-2
+- Add a "Recommended Setup" section to README.md after the install instructions
+- List companion marketplaces with brief descriptions:
+  - `astral-sh/claude-code-plugins` — Astral's official Claude Code plugins (uv, ty, ruff)
+- Include a "Quick Start" block showing the full recommended setup sequence:
+  ```
+  /plugin add-marketplace Mastermjr/claude-code-market
+  /plugin add-marketplace astral-sh/claude-code-plugins
+  /plugin install atuin-history@claude-code-market
+  /plugin install uv@astral-sh/claude-code-plugins
+  ```
+- Mention the `/claude-code-market:setup` skill as an interactive alternative
+- **Integration:** README.md — documentation only
+
+**W3-3: Update plugin.json to register setup skill (#14)** — Weight: S, Gate: review, Deps: W2-2
+- Add `"skills/setup"` to the `skills` array in `.claude-plugin/plugin.json`
+- Update `version` to `"2.1.0"` (new skill = minor version bump)
+- Update `description` to mention setup hub capability
+- **Integration:** `.claude-plugin/plugin.json` — skill registration
+
 ##### Critical Files
 - `.claude-plugin/marketplace.json` — the marketplace plugin listing, core of the new model
-- `.claude-plugin/plugin.json` — makes the marketplace repo itself a plugin
+- `.claude-plugin/plugin.json` — makes the marketplace repo itself a plugin (updated in W3-3)
 - `skills/plugin-dev/SKILL.md` — comprehensive plugin system reference
-- `README.md` — user-facing documentation
+- `skills/setup/SKILL.md` — setup hub skill guiding users through marketplace configuration (W3-1)
+- `README.md` — user-facing documentation (updated in W3-2)
 - `.github/workflows/check-plugin-docs.yml` — documentation freshness workflow
 
 ##### Decision Log
@@ -226,12 +278,14 @@ The marketplace uses `.claude-plugin/marketplace.json` with GitHub source for at
 Main is sacred. Each wave dispatches parallel worktrees:
 - **Wave 1:** `.worktrees/market-v2-w1` on branch `feature/marketplace-v2-wave1` (all 4 items can be done in one worktree since they are tightly coupled file changes)
 - **Wave 2:** `.worktrees/market-v2-w2` on branch `feature/marketplace-v2-wave2`
+- **Wave 3:** `.worktrees/market-v2-w3` on branch `feature/marketplace-v2-wave3` (all 3 items in one worktree — tightly coupled skill+readme+manifest changes)
 
 #### Marketplace V2 References
 
 - [Claude Code Plugin System Docs](https://docs.anthropic.com/en/docs/claude-code/plugins) — official plugin documentation
 - [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) — official marketplace structure reference
 - [Mastermjr/atuin-claude-ctrl-plugin](https://github.com/Mastermjr/atuin-claude-ctrl-plugin) — atuin-history source repo
+- [astral-sh/claude-code-plugins](https://github.com/astral-sh/claude-code-plugins) — Astral's official Claude Code plugins (uv, ty, ruff)
 
 ---
 
