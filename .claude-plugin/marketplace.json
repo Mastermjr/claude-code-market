@@ -1,0 +1,12 @@
+{
+  "name": "claude-code-market",
+  "owner": {"name": "Mastermjr"},
+  "plugins": [
+    {
+      "name": "atuin-history",
+      "source": {"source": "github", "repo": "Mastermjr/atuin-claude-ctrl-plugin"},
+      "description": "Bridges Atuin shell history with Claude Code — logs commands and provides live search",
+      "homepage": "https://github.com/Mastermjr/atuin-claude-ctrl-plugin"
+    }
+  ]
+}

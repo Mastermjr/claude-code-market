@@ -4,48 +4,70 @@ Personal Claude Code plugin marketplace by [Mastermjr](https://github.com/Master
 
 ## Install the Marketplace
 
-Register this marketplace so plugins are discoverable via `/plugin > Discover`:
+Register this marketplace so plugins are discoverable and installable:
 
-```bash
-/plugin add-marketplace https://github.com/Mastermjr/claude-code-market.git
+```
+/plugin marketplace add Mastermjr/claude-code-market
 ```
 
 ## Available Plugins
 
 | Plugin | Description | Source | Install |
 |--------|-------------|--------|---------|
-| [atuin-history](plugins/atuin-history/) | Bridges Atuin shell history with Claude Code — logs commands and provides live search | [atuin-claude-ctrl-plugin](https://github.com/Mastermjr/atuin-claude-ctrl-plugin) | `/plugin install atuin-history@claude-code-market` |
+| [atuin-history](https://github.com/Mastermjr/atuin-claude-ctrl-plugin) | Bridges Atuin shell history with Claude Code — logs commands and provides live search | [atuin-claude-ctrl-plugin](https://github.com/Mastermjr/atuin-claude-ctrl-plugin) | `/plugin install atuin-history@claude-code-market` |
+
+## The plugin-dev Skill
+
+This marketplace repo is itself a Claude Code plugin. Install it to get the `plugin-dev` skill — a comprehensive reference for designing, building, and distributing Claude Code plugins.
+
+The skill covers: plugin.json manifest (all fields), all 6 source types, all component types (skills, commands, agents, hooks, MCP servers, LSP servers), the full hook system (all 14 events, 3 hook types), marketplace.json authoring, strict mode, plugin caching, CLI commands, and distribution patterns.
+
+After installing the marketplace, invoke the skill at any time:
+
+```
+/claude-code-market:plugin-dev
+```
+
+Or with a specific question:
+
+```
+/claude-code-market:plugin-dev How do I add a PostToolUse hook to my plugin?
+```
 
 ## How It Works
 
-Plugin runtime files (hooks, skills, commands) must live inline in this repo because Claude Code's plugin loader reads directly from the marketplace clone. But each plugin is developed in its own source repo — **do not edit plugin files here directly.**
-
-A GitHub Actions workflow (`sync-atuin-history.yml`) automatically syncs runtime files from each plugin's source repo into this marketplace. When the source repo changes, the workflow opens a PR here. Merge it to publish the update.
-
 ```
-Source repo (develop here)          Marketplace repo (install from here)
-atuin-claude-ctrl-plugin/    ──CI sync──▶   plugins/atuin-history/
-  hooks/                                      hooks/
-  skills/                                     skills/
-  .claude-plugin/                             .claude-plugin/
+marketplace.json                    Claude Code
+  plugins[]:
+    name: atuin-history    ──────▶  /plugin install atuin-history@claude-code-market
+    source:
+      github: Mastermjr/            Claude Code clones the source repo directly
+              atuin-claude-          into ~/.claude/plugins/cache/atuin-history/
+              ctrl-plugin
 ```
 
-## Adding Plugins
+Plugin code lives in its own source repository. This marketplace only declares where each plugin lives — it never duplicates runtime files. Claude Code handles cloning and caching natively.
 
-Each plugin lives under `plugins/<name>/` with the standard structure:
+## Architecture
 
 ```
-plugins/<name>/
-├── .claude-plugin/
-│   └── plugin.json        # Required: {name, description, author, homepage}
-├── hooks/                 # Optional: hook definitions
-├── skills/                # Optional: skill definitions
-├── commands/              # Optional: slash commands
-├── .mcp.json              # Optional: MCP server config
-└── README.md
+.claude-plugin/
+├── marketplace.json     # Lists available plugins with GitHub source references
+└── plugin.json          # Makes this repo itself a plugin (provides plugin-dev skill)
+
+skills/
+└── plugin-dev/
+    └── SKILL.md         # Comprehensive plugin system reference
 ```
 
-For each new plugin, create a corresponding sync workflow in `.github/workflows/` that copies runtime files from the source repo.
+## Adding More Plugins
+
+Each entry in `.claude-plugin/marketplace.json` is a plugin listing. To add a new plugin:
+
+1. Add an entry to the `plugins` array in `marketplace.json`
+2. Point `source` at the plugin's GitHub repo (or any supported source type)
+
+No sync workflows. No inline file copies. Claude Code handles the rest.
 
 ## License
 
