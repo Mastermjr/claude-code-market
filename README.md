@@ -2,9 +2,19 @@
 
 Personal Claude Code plugin marketplace by [Mastermjr](https://github.com/Mastermjr).
 
+## Fresh Install (One Command)
+
+Set up [claude-ctrl](https://github.com/Mastermjr/claude-ctrl) + this marketplace from scratch:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Mastermjr/claude-code-market/main/scripts/bootstrap.sh | bash
+```
+
+This backs up any existing `~/.claude`, clones claude-ctrl, and creates default settings. Then start `claude` and run `/claude-code-market:setup` for guided plugin installation.
+
 ## Install the Marketplace
 
-Register this marketplace so plugins are discoverable and installable:
+Already have Claude Code set up? Just register this marketplace:
 
 ```
 /plugin marketplace add Mastermjr/claude-code-market
