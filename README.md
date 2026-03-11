@@ -34,6 +34,30 @@ Or with a specific question:
 /claude-code-market:plugin-dev How do I add a PostToolUse hook to my plugin?
 ```
 
+## Recommended Setup
+
+This marketplace is part of a broader Claude Code configuration. For the full Mastermjr setup — including companion marketplaces and recommended plugins — use the guided setup skill:
+
+```
+/claude-code-market:setup
+```
+
+Or follow the quick-start sequence manually:
+
+```
+# Register companion marketplace
+/plugin marketplace add Mastermjr/claude-code-market
+/plugin marketplace add astral-sh/claude-code-plugins
+
+# Install recommended plugins
+/plugin install atuin-history@claude-code-market
+/plugin install frontend-design@claude-plugins-official
+/plugin install context7@claude-plugins-official
+/plugin install astral@astral-sh
+```
+
+**Companion marketplace:** [astral-sh/claude-code-plugins](https://github.com/astral-sh/claude-code-plugins) — Astral's official Claude Code plugins providing uv, ty, ruff, and the ty LSP server.
+
 ## How It Works
 
 ```
