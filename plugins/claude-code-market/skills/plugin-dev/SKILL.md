@@ -56,9 +56,9 @@ The manifest lives at `.claude-plugin/plugin.json` inside your plugin directory.
 
 **Component path fields** (`commands`, `agents`, `skills`, `outputStyles`): string or array of strings, relative to the plugin root. These supplement the default locations — they do NOT replace them. Both the declared paths and the default paths are searched.
 
-**Do NOT declare `"skills"`:** Claude Code auto-discovers skills from the `skills/` directory. Adding a `"skills"` array to `plugin.json` is not needed and not used by the working Astral pattern.
+**`"skills"` array:** Claude Code auto-discovers skills from the `skills/` directory. You generally don't need to declare them in `plugin.json`.
 
-**Do NOT use `"strict"`:** The `strict` field is not present in the working Astral reference implementation. Omit it. See [Section 6: Strict Mode](#6-strict-mode) for background.
+**`"strict"` field:** Defaults to `true`. Most plugins don't need to set this explicitly. See [Section 6: Strict Mode](#6-strict-mode) for when you might use it.
 
 **`${CLAUDE_PLUGIN_ROOT}`:** The absolute path to the installed plugin directory. Use this in hook scripts, MCP server configs, and LSP configs whenever you need to reference a file inside the plugin. Never use relative paths or hardcoded absolute paths — those break across users and installations.
 
@@ -90,7 +90,7 @@ plugin-name/
 
 ## 3. All 6 Source Types (for `marketplace.json`)
 
-### 3.1 Relative Path (Recommended for Bundled Plugins)
+### 3.1 Relative Path (for Bundled Plugins)
 
 ```json
 {"source": "./plugins/my-plugin"}
@@ -98,9 +98,11 @@ plugin-name/
 
 Must start with `./`. Path is relative to the marketplace.json file's directory (or `metadata.pluginRoot` if set).
 
-**This is the correct pattern for monorepo/bundled marketplaces** — where the marketplace repo contains the plugin source directly under a `plugins/` subdirectory. The Astral marketplace uses this pattern: `marketplace.json` lives at the repo root and plugins live at `plugins/astral/`. Use relative paths when the plugin ships in the same repo as the marketplace.
+Use when the plugin ships in the same repo as the marketplace (monorepo pattern). The Astral marketplace uses this: `"source": "./plugins/astral"`.
 
-### 3.2 GitHub
+**Caveat:** Relative paths only work when the marketplace is added via Git (e.g., `/plugin marketplace add owner/repo`). If added via direct URL to the `marketplace.json` file, relative paths won't resolve. For URL-based distribution, use GitHub, git URL, or npm sources instead.
+
+### 3.2 GitHub (for External Plugins)
 
 ```json
 {
@@ -116,6 +118,8 @@ Must start with `./`. Path is relative to the marketplace.json file's directory 
 - `repo`: required, `owner/repo` format
 - `ref`: optional, branch or tag name (defaults to repo default branch)
 - `sha`: optional, 40-character commit SHA for pinned installs
+
+Use when the plugin lives in its own GitHub repository. Claude Code clones the repo and caches it locally. This is the right choice when you don't want to bundle the plugin's source code inside the marketplace repo.
 
 ### 3.3 Git URL
 
@@ -216,10 +220,10 @@ The marketplace.json declares the marketplace identity and lists available plugi
 - `plugins[].name`: plugin identifier (used in install commands)
 - `plugins[].source`: source reference (see Section 3)
 
-**`plugins[].source` — use relative paths for bundled plugins:**
-- **Bundled** (plugin lives in this repo): `"source": "./plugins/my-plugin"` — relative path string
-- **External** (plugin lives in another repo): `"source": {"source": "github", "repo": "owner/repo"}` — object
-- Do NOT use GitHub source objects for plugins bundled in the same repo. Relative path strings are the correct pattern (Astral reference implementation uses `"./plugins/astral"`).
+**`plugins[].source` — choosing the right source type:**
+- **Bundled** (plugin ships in this repo): `"source": "./plugins/my-plugin"` — relative path string. Only works when marketplace is added via Git.
+- **External** (plugin lives in another repo): `"source": {"source": "github", "repo": "owner/repo"}` — GitHub source object. Claude Code clones the repo at install time.
+- Both formats are fully supported. Use relative paths for monorepo plugins, GitHub sources for plugins maintained in separate repositories.
 
 **Optional:**
 - `owner.email`: contact email
@@ -228,7 +232,7 @@ The marketplace.json declares the marketplace identity and lists available plugi
 - `metadata.pluginRoot`: base directory for relative-path sources
 - Plugin entry fields: `description`, `homepage`, `category`, `tags`
 
-**Reserved marketplace names:** `official`, `anthropic`, `claude`. Do not use these as your marketplace `name`.
+**Reserved marketplace names:** `claude-code-marketplace`, `claude-plugins-official`, `anthropic-marketplace`, `anthropic-plugins`, `agent-skills`, `life-sciences`. Names that impersonate official marketplaces are also blocked.
 
 ---
 
@@ -460,18 +464,18 @@ Currently, only the `agent` key is supported. When set, activates the named agen
 
 The `strict` field in `plugin.json` (and per-plugin in `marketplace.json`) controls how Claude Code resolves conflicts between the plugin's own `plugin.json` and the marketplace entry.
 
-**In practice: do not use `strict`.** The working Astral reference implementation does not include a `strict` field in `plugin.json` or in marketplace plugin entries. Claude Code auto-discovers components from default directories (`skills/`, `hooks/`, etc.) without needing `strict`. Omit this field unless you have a specific conflict-resolution requirement.
-
-**`strict: true` (documented default):**
+**`strict: true` (default):**
 - `plugin.json` is the authority for component declarations
-- Marketplace entry supplements with additional metadata (description, category, tags)
-- If marketplace and plugin.json both declare components, plugin.json wins
+- Marketplace entry can supplement with additional metadata and components; both are merged
+- This is the default — you don't need to set it explicitly
 
 **`strict: false`:**
 - The marketplace entry becomes the entire plugin definition
-- `plugin.json` inside the cloned plugin is ignored for component declarations
-- If the plugin's own `plugin.json` declares components that conflict with the marketplace entry, it fails
-- Use this when you want the marketplace to fully control the plugin surface, regardless of what the plugin ships
+- The plugin repo provides raw files; the marketplace controls which are exposed
+- If the plugin's `plugin.json` also declares components, the plugin fails to load
+- Use when the marketplace operator wants full control over which components are exposed
+
+Most plugins work fine without setting `strict` at all (defaults to `true`).
 
 ---
 
@@ -597,15 +601,17 @@ or equivalently:
 
 ```json
 {
-  "extraKnownMarketplaces": [
-    {
-      "name": "my-org-marketplace",
-      "source": "https://github.com/my-org/claude-plugins"
+  "extraKnownMarketplaces": {
+    "my-org-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "my-org/claude-plugins"
+      }
     }
-  ],
-  "enabledPlugins": [
-    "my-plugin@my-org-marketplace"
-  ]
+  },
+  "enabledPlugins": {
+    "my-plugin@my-org-marketplace": true
+  }
 }
 ```
 
@@ -700,27 +706,9 @@ Debug mode shows plugin loading details: which manifests were found, which compo
 }
 ```
 
-Do NOT include `"skills"` array (auto-discovered) or `"strict"` (not needed).
+Skills are auto-discovered; `"skills"` array is optional. `"strict"` defaults to `true`; omit unless you need `strict: false` behavior.
 
-### `marketplace.json` with Bundled Plugins (Relative Path — Recommended)
-
-```json
-{
-  "name": "my-marketplace",
-  "owner": {"name": "MyName"},
-  "plugins": [
-    {
-      "name": "my-plugin",
-      "source": "./plugins/my-plugin",
-      "description": "What this plugin does"
-    }
-  ]
-}
-```
-
-Plugin lives at `plugins/my-plugin/` in the same repo as `marketplace.json`.
-
-### `marketplace.json` with External Plugin (GitHub Source)
+### `marketplace.json` with Mixed Sources (Bundled + External)
 
 ```json
 {
@@ -728,16 +716,20 @@ Plugin lives at `plugins/my-plugin/` in the same repo as `marketplace.json`.
   "owner": {"name": "MyName"},
   "plugins": [
     {
-      "name": "my-plugin",
-      "source": {"source": "github", "repo": "MyName/my-plugin"},
-      "description": "What this plugin does",
-      "homepage": "https://github.com/MyName/my-plugin"
+      "name": "my-bundled-plugin",
+      "source": "./plugins/my-bundled-plugin",
+      "description": "Plugin shipped in the same repo"
+    },
+    {
+      "name": "my-external-plugin",
+      "source": {"source": "github", "repo": "MyName/my-external-plugin"},
+      "description": "Plugin from a separate GitHub repo"
     }
   ]
 }
 ```
 
-Use GitHub source objects only when the plugin lives in a separate repository.
+Bundled plugins use relative paths. External plugins use GitHub source objects. Both are fully supported — choose based on where the plugin's source code lives.
 
 ### `hooks/hooks.json` with PostToolUse Example
 
@@ -811,6 +803,21 @@ Your skill content here. $ARGUMENTS is replaced with user-provided text at invoc
 
 ---
 
+## 13. Official Documentation
+
+For the latest specifications, refer to the official Claude Code documentation:
+
+- **[Create plugins](https://code.claude.com/docs/en/plugins)** — plugin creation guide, directory structure, testing
+- **[Create and distribute a marketplace](https://code.claude.com/docs/en/plugin-marketplaces)** — marketplace.json schema, all source types, hosting, distribution
+- **[Plugins reference](https://code.claude.com/docs/en/plugins-reference)** — complete technical specifications, manifest schema, caching, debugging
+- **[Discover and install plugins](https://code.claude.com/docs/en/discover-plugins)** — user guide for finding and installing plugins
+- **[Agent Skills](https://code.claude.com/docs/en/skills)** — skill authoring, frontmatter, progressive disclosure
+- **[Hooks](https://code.claude.com/docs/en/hooks)** — hook events, types, matchers, input format
+
+This skill is derived from these docs. When this skill and the official docs disagree, the official docs are correct.
+
+---
+
 ## Summary: Key Rules to Remember
 
 1. **`${CLAUDE_PLUGIN_ROOT}`** — always use it for paths to files inside your plugin. Never hardcode paths.
@@ -819,7 +826,7 @@ Your skill content here. $ARGUMENTS is replaced with user-provided text at invoc
 4. **Skills use subdirectory structure** — `skills/<name>/SKILL.md`, not `skills/<name>.md`.
 5. **Hook scripts must be executable** — `chmod +x` and include a shebang.
 6. **Bump version for updates to propagate** — cached plugins use version for invalidation.
-7. **No `"skills"` array in `plugin.json`** — Claude Code auto-discovers skills from `skills/`. Don't declare them manually.
-8. **No `"strict"` in `plugin.json`** — the Astral reference implementation omits it. Don't add it.
-9. **Relative path sources for bundled plugins** — `"source": "./plugins/name"` for plugins in the same repo. GitHub source objects are for external repos only.
+7. **Skills are auto-discovered** — Claude Code finds skills in `skills/`. You generally don't need a `"skills"` array in `plugin.json`.
+8. **Strict mode defaults to `true`** — most plugins don't need to set it. Only use `strict: false` for marketplace-controlled plugin surfaces.
+9. **Choose the right source type** — relative paths (`"./plugins/name"`) for bundled plugins, GitHub source objects for external repos. Both work in `marketplace.json`.
 10. **LSP binaries are external** — the plugin configures the connection; users install the binary.
