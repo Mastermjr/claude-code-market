@@ -67,7 +67,7 @@ Atuin replaces the standard shell history file (e.g., `~/.bash_history`, `~/.zsh
 - Config: `~/.config/atuin/config.toml`
 - Database: `~/.local/share/atuin/history.db`
 - Encryption key: `~/.local/share/atuin/key`
-- Binary (if installed via atuin installer): `/root/.atuin/bin/atuin`
+- Binary (if installed via atuin installer): `$HOME/.atuin/bin/atuin`
 
 ---
 
@@ -413,13 +413,13 @@ Use with `--format` flag in `atuin search` or `atuin history list`, or set `hist
 
 ## 7. Interactive Capabilities
 
-When the user asks a question that can be answered with live atuin data, execute the appropriate command. The atuin binary may be at `/root/.atuin/bin/atuin` or in `$PATH`. Check both.
+When the user asks a question that can be answered with live atuin data, execute the appropriate command. The atuin binary may be at `$HOME/.atuin/bin/atuin` or in `$PATH`. Check both.
 
 ```bash
 # Resolve atuin binary path
-ATUIN_BIN="$(command -v atuin 2>/dev/null || echo /root/.atuin/bin/atuin)"
+ATUIN_BIN="$(command -v atuin 2>/dev/null || echo $HOME/.atuin/bin/atuin)"
 if [[ ! -x "$ATUIN_BIN" ]]; then
-  echo "atuin not found in PATH or at /root/.atuin/bin/atuin"
+  echo "atuin not found in PATH or at $HOME/.atuin/bin/atuin"
   exit 1
 fi
 ```
@@ -514,7 +514,7 @@ $ATUIN_BIN doctor     # Diagnose sync, DB, and shell integration issues
 | "Key not found" | Encryption key missing or mismatched | Re-import key with `atuin key`; restore from backup if available |
 | Slow search | Searching too large a scope | Try `--filter-mode host` or `--filter-mode session` to reduce the search space |
 | Commands logged twice | Duplicate shell integration entries in rc file | Check rc file for duplicate `atuin init` calls; remove duplicates |
-| Atuin not in PATH | Installed to non-standard location | Add `/root/.atuin/bin` to PATH, or use full path `/root/.atuin/bin/atuin` |
+| Atuin not in PATH | Installed to non-standard location | Add `$HOME/.atuin/bin` to PATH, or use full path `$HOME/.atuin/bin/atuin` |
 | Secrets appear in history | `secrets_filter = false` or pattern not covered | Enable `secrets_filter = true`; add specific patterns to `history_filter`; run `atuin history prune` |
 
 ---
