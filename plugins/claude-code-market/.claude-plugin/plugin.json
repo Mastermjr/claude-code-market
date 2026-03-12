@@ -1,0 +1,7 @@
+{
+  "name": "claude-code-market",
+  "version": "2.2.0",
+  "description": "Plugin development skill and Claude Code setup hub",
+  "author": {"name": "Mastermjr"},
+  "homepage": "https://github.com/Mastermjr/claude-code-market"
+}

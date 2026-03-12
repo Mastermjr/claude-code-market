@@ -1,9 +1,0 @@
-{
-  "name": "claude-code-market",
-  "version": "2.1.0",
-  "description": "Mastermjr's personal plugin marketplace — includes plugin-dev skill and Claude Code setup hub",
-  "author": {"name": "Mastermjr"},
-  "homepage": "https://github.com/Mastermjr/claude-code-market",
-  "skills": ["skills/plugin-dev", "skills/setup"],
-  "strict": true
-}

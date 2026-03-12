@@ -22,13 +22,14 @@ Already have Claude Code set up? Just register this marketplace:
 
 ## Available Plugins
 
-| Plugin | Description | Source | Install |
-|--------|-------------|--------|---------|
-| [atuin-history](https://github.com/Mastermjr/atuin-claude-ctrl-plugin) | Bridges Atuin shell history with Claude Code — logs commands and provides live search | [atuin-claude-ctrl-plugin](https://github.com/Mastermjr/atuin-claude-ctrl-plugin) | `/plugin install atuin-history@claude-code-market` |
+| Plugin | Description | Install |
+|--------|-------------|---------|
+| [claude-code-market](#the-plugin-dev-skill) | Plugin development skill and Claude Code setup hub | `/plugin install claude-code-market@claude-code-market` |
+| [atuin-history](#atuin-history) | Bridges Atuin shell history with Claude Code — logs commands and provides live search | `/plugin install atuin-history@claude-code-market` |
 
 ## The plugin-dev Skill
 
-This marketplace repo is itself a Claude Code plugin. Install it to get the `plugin-dev` skill — a comprehensive reference for designing, building, and distributing Claude Code plugins.
+Install the `claude-code-market` plugin to get the `plugin-dev` skill — a comprehensive reference for designing, building, and distributing Claude Code plugins.
 
 The skill covers: plugin.json manifest (all fields), all 6 source types, all component types (skills, commands, agents, hooks, MCP servers, LSP servers), the full hook system (all 14 events, 3 hook types), marketplace.json authoring, strict mode, plugin caching, CLI commands, and distribution patterns.
 
@@ -42,6 +43,16 @@ Or with a specific question:
 
 ```
 /claude-code-market:plugin-dev How do I add a PostToolUse hook to my plugin?
+```
+
+## atuin-history
+
+Logs every Bash command Claude Code executes into [Atuin](https://atuin.sh)'s shell history database. Also provides the `/atuin-history:atuin` skill for searching and managing shell history directly from Claude Code.
+
+**Prerequisite:** Atuin v18+ must be installed. Check with `atuin --version`. Install from [atuin.sh](https://atuin.sh).
+
+```
+/plugin install atuin-history@claude-code-market
 ```
 
 ## Recommended Setup
@@ -68,40 +79,60 @@ Or follow the quick-start sequence manually:
 
 **Companion marketplace:** [astral-sh/claude-code-plugins](https://github.com/astral-sh/claude-code-plugins) — Astral's official Claude Code plugins providing uv, ty, ruff, and the ty LSP server.
 
-## How It Works
-
-```
-marketplace.json                    Claude Code
-  plugins[]:
-    name: atuin-history    ──────▶  /plugin install atuin-history@claude-code-market
-    source:
-      github: Mastermjr/            Claude Code clones the source repo directly
-              atuin-claude-          into ~/.claude/plugins/cache/atuin-history/
-              ctrl-plugin
-```
-
-Plugin code lives in its own source repository. This marketplace only declares where each plugin lives — it never duplicates runtime files. Claude Code handles cloning and caching natively.
-
 ## Architecture
+
+This repo follows the Astral monorepo pattern: plugins are bundled directly in this repo under `plugins/`, and `marketplace.json` uses relative path sources.
 
 ```
 .claude-plugin/
-├── marketplace.json     # Lists available plugins with GitHub source references
-└── plugin.json          # Makes this repo itself a plugin (provides plugin-dev skill)
+└── marketplace.json     # Lists plugins with relative path sources
 
-skills/
-└── plugin-dev/
-    └── SKILL.md         # Comprehensive plugin system reference
+plugins/
+├── claude-code-market/  # plugin-dev skill + setup skill
+│   ├── .claude-plugin/
+│   │   └── plugin.json
+│   └── skills/
+│       ├── plugin-dev/
+│       │   └── SKILL.md
+│       └── setup/
+│           └── SKILL.md
+└── atuin-history/       # Atuin history integration
+    ├── .claude-plugin/
+    │   └── plugin.json
+    ├── skills/
+    │   └── atuin/
+    │       └── SKILL.md
+    └── hooks/
+        ├── hooks.json
+        └── atuin-log.sh
 ```
+
+**Why relative paths?** The `marketplace.json` uses `"source": "./plugins/name"` (relative path string) rather than GitHub source objects. This is the correct pattern when the plugin ships in the same repo as the marketplace — Claude Code resolves the path relative to `marketplace.json`. The Astral marketplace uses the same pattern.
 
 ## Adding More Plugins
 
-Each entry in `.claude-plugin/marketplace.json` is a plugin listing. To add a new plugin:
+To add a new bundled plugin:
 
-1. Add an entry to the `plugins` array in `marketplace.json`
-2. Point `source` at the plugin's GitHub repo (or any supported source type)
+1. Create `plugins/<name>/.claude-plugin/plugin.json` with name, version, description, author
+2. Add skills at `plugins/<name>/skills/<skill-name>/SKILL.md`
+3. Add hooks at `plugins/<name>/hooks/hooks.json` and scripts
+4. Add an entry to `.claude-plugin/marketplace.json`:
+   ```json
+   {
+     "name": "my-plugin",
+     "source": "./plugins/my-plugin",
+     "description": "What this plugin does"
+   }
+   ```
 
-No sync workflows. No inline file copies. Claude Code handles the rest.
+To list an externally-hosted plugin (lives in its own repo), use a GitHub source object instead:
+```json
+{
+  "name": "external-plugin",
+  "source": {"source": "github", "repo": "owner/plugin-repo"},
+  "description": "What this plugin does"
+}
+```
 
 ## License
 

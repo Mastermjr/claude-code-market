@@ -3,10 +3,14 @@
   "owner": {"name": "Mastermjr"},
   "plugins": [
     {
+      "name": "claude-code-market",
+      "source": "./plugins/claude-code-market",
+      "description": "Plugin development skill and Claude Code setup hub"
+    },
+    {
       "name": "atuin-history",
-      "source": {"source": "github", "repo": "Mastermjr/atuin-claude-ctrl-plugin"},
-      "description": "Bridges Atuin shell history with Claude Code — logs commands and provides live search",
-      "homepage": "https://github.com/Mastermjr/atuin-claude-ctrl-plugin"
+      "source": "./plugins/atuin-history",
+      "description": "Bridges Atuin shell history with Claude Code — logs commands and provides live search"
     }
   ]
 }
