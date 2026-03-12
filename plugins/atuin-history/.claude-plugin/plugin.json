@@ -1,8 +1,0 @@
-{
-  "name": "atuin-history",
-  "description": "Logs every Bash command Claude executes into Atuin's shell history database and provides an /atuin skill for searching and managing shell history.",
-  "version": "2.0.0",
-  "author": {
-    "name": "Mastermjr"
-  }
-}

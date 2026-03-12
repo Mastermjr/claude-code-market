@@ -30,17 +30,19 @@ else
   echo "  OK: root plugin.json absent"
 fi
 
-# Check marketplace.json uses relative path strings (not GitHub source objects)
-echo "Checking plugin sources are relative paths..."
+# Check marketplace.json plugin sources are valid (relative path or GitHub source object)
+echo "Checking plugin sources..."
 python3 -c "
 import json, sys
 m = json.load(open('$REPO_ROOT/.claude-plugin/marketplace.json'))
 for p in m['plugins']:
     s = p.get('source', '')
     if isinstance(s, str) and s.startswith('./'):
-        print(f'  OK: {p[\"name\"]} -> {s}')
+        print(f'  OK: {p[\"name\"]} -> {s} (bundled)')
+    elif isinstance(s, dict) and s.get('source') == 'github' and 'repo' in s:
+        print(f'  OK: {p[\"name\"]} -> github:{s[\"repo\"]} (external)')
     else:
-        print(f'  FAIL: {p[\"name\"]} source must be a relative path string starting with ./, got: {s!r}')
+        print(f'  FAIL: {p[\"name\"]} source must be relative path or {{\"source\": \"github\", \"repo\": \"...\"}} — got: {s!r}')
         sys.exit(1)
 " || ERRORS=$((ERRORS+1))
 
@@ -88,12 +90,20 @@ echo "Checking claude-code-market skills..."
 # Check plugin-dev SKILL.md has frontmatter
 head -1 "$REPO_ROOT/plugins/claude-code-market/skills/plugin-dev/SKILL.md" | grep -q "^---" || { echo "  FAIL: plugin-dev SKILL.md missing frontmatter"; ERRORS=$((ERRORS+1)); }
 
-# Check atuin-history plugin has skill and hook
-echo "Checking atuin-history plugin..."
-[ -f "$REPO_ROOT/plugins/atuin-history/skills/atuin/SKILL.md" ] || { echo "  FAIL: atuin SKILL.md missing"; ERRORS=$((ERRORS+1)); }
-[ -f "$REPO_ROOT/plugins/atuin-history/hooks/hooks.json" ] || { echo "  FAIL: atuin hooks.json missing"; ERRORS=$((ERRORS+1)); }
-[ -f "$REPO_ROOT/plugins/atuin-history/hooks/atuin-log.sh" ] || { echo "  FAIL: atuin-log.sh missing"; ERRORS=$((ERRORS+1)); }
-[ -x "$REPO_ROOT/plugins/atuin-history/hooks/atuin-log.sh" ] || { echo "  FAIL: atuin-log.sh not executable"; ERRORS=$((ERRORS+1)); }
+# Check external plugins have valid GitHub source entries
+echo "Checking external plugin sources..."
+python3 -c "
+import json, sys
+m = json.load(open('$REPO_ROOT/.claude-plugin/marketplace.json'))
+for p in m['plugins']:
+    s = p.get('source', '')
+    if isinstance(s, dict) and s.get('source') == 'github':
+        repo = s.get('repo', '')
+        if '/' not in repo:
+            print(f'  FAIL: {p[\"name\"]} github source missing owner/repo format: {repo}')
+            sys.exit(1)
+        print(f'  OK: {p[\"name\"]} -> github:{repo}')
+"
 
 # Check no root-level skills/ directory (old structure)
 echo "Checking no stale root skills/ directory..."
