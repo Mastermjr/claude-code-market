@@ -9,8 +9,13 @@
     },
     {
       "name": "atuin-history",
-      "source": "./plugins/atuin-history",
+      "source": {"source": "github", "repo": "Mastermjr/atuin-claude-ctrl-plugin"},
       "description": "Bridges Atuin shell history with Claude Code — logs commands and provides live search"
+    },
+    {
+      "name": "ludus-skill",
+      "source": {"source": "github", "repo": "Mastermjr/ludus-skill"},
+      "description": "Ludus cyber range assistant — covers both v1 and v2 with CLI commands, range configuration, API usage, networking, templates, blueprints, snapshots, and troubleshooting"
     }
   ]
 }
