@@ -27,6 +27,7 @@ Already have Claude Code set up? Just register this marketplace:
 | [claude-code-market](#the-plugin-dev-skill) | Plugin development skill and Claude Code setup hub | `/plugin install claude-code-market@claude-code-market` |
 | [atuin-history](#atuin-history) | Bridges Atuin shell history with Claude Code — logs commands and provides live search | `/plugin install atuin-history@claude-code-market` |
 | [ludus-skill](https://github.com/Mastermjr/ludus-skill) | Ludus cyber range assistant — CLI, config, API for v1 and v2 | `/plugin install ludus-skill@claude-code-market` |
+| [playwright-screenshot](https://github.com/Mastermjr/playwright-screenshot-plugin) | Visual feedback and regression testing using Playwright MCP tools | `/plugin install playwright-screenshot@claude-code-market` |
 
 ## The plugin-dev Skill
 

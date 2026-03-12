@@ -16,6 +16,11 @@
       "name": "ludus-skill",
       "source": {"source": "github", "repo": "Mastermjr/ludus-skill"},
       "description": "Ludus cyber range assistant — covers both v1 and v2 with CLI commands, range configuration, API usage, networking, templates, blueprints, snapshots, and troubleshooting"
+    },
+    {
+      "name": "playwright-screenshot",
+      "source": {"source": "github", "repo": "Mastermjr/playwright-screenshot-plugin"},
+      "description": "Visual feedback and regression testing using Playwright MCP tools"
     }
   ]
 }
