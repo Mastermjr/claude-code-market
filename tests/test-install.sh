@@ -30,9 +30,7 @@ if ! command -v claude &>/dev/null; then
   exit 0
 fi
 
-# Force HTTPS for GitHub (SSH may not be configured in CI/test envs)
 mkdir -p "$TEST_HOME"
-HOME="$TEST_HOME" git config --global url."https://github.com/".insteadOf "git@github.com:"
 
 echo "=== Integration Test: Real Plugin Install ==="
 echo "  HOME=$TEST_HOME"
