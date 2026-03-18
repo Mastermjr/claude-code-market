@@ -41,8 +41,10 @@ for p in m['plugins']:
         print(f'  OK: {p[\"name\"]} -> {s} (bundled)')
     elif isinstance(s, dict) and s.get('source') == 'github' and 'repo' in s:
         print(f'  OK: {p[\"name\"]} -> github:{s[\"repo\"]} (external)')
+    elif isinstance(s, dict) and s.get('source') == 'url' and 'url' in s:
+        print(f'  OK: {p[\"name\"]} -> url:{s[\"url\"]} (external)')
     else:
-        print(f'  FAIL: {p[\"name\"]} source must be relative path or {{\"source\": \"github\", \"repo\": \"...\"}} — got: {s!r}')
+        print(f'  FAIL: {p[\"name\"]} source must be relative path, {{\"source\": \"github\", \"repo\": \"...\"}}, or {{\"source\": \"url\", \"url\": \"...\"}} — got: {s!r}')
         sys.exit(1)
 " || ERRORS=$((ERRORS+1))
 
@@ -103,6 +105,12 @@ for p in m['plugins']:
             print(f'  FAIL: {p[\"name\"]} github source missing owner/repo format: {repo}')
             sys.exit(1)
         print(f'  OK: {p[\"name\"]} -> github:{repo}')
+    elif isinstance(s, dict) and s.get('source') == 'url':
+        url = s.get('url', '')
+        if not url.startswith('https://'):
+            print(f'  FAIL: {p[\"name\"]} url source must use HTTPS: {url}')
+            sys.exit(1)
+        print(f'  OK: {p[\"name\"]} -> url:{url}')
 "
 
 # Check no root-level skills/ directory (old structure)

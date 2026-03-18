@@ -9,17 +9,17 @@
     },
     {
       "name": "atuin-history",
-      "source": {"source": "github", "repo": "Mastermjr/atuin-claude-ctrl-plugin"},
+      "source": {"source": "url", "url": "https://github.com/Mastermjr/atuin-claude-ctrl-plugin.git"},
       "description": "Bridges Atuin shell history with Claude Code — logs commands and provides live search"
     },
     {
       "name": "ludus-skill",
-      "source": {"source": "github", "repo": "Mastermjr/ludus-skill"},
+      "source": {"source": "url", "url": "https://github.com/Mastermjr/ludus-skill.git"},
       "description": "Ludus cyber range assistant — covers both v1 and v2 with CLI commands, range configuration, API usage, networking, templates, blueprints, snapshots, and troubleshooting"
     },
     {
       "name": "playwright-screenshot",
-      "source": {"source": "github", "repo": "Mastermjr/playwright-screenshot-plugin"},
+      "source": {"source": "url", "url": "https://github.com/Mastermjr/playwright-screenshot-plugin.git"},
       "description": "Visual feedback and regression testing using Playwright MCP tools"
     }
   ]
